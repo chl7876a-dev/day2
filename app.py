@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import requests
+from datetime import datetime
 
 # ── 페이지 설정 ────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="에코마케팅 광고 대시보드", layout="wide", page_icon="📊")
@@ -159,6 +161,84 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ── 서울 날씨 ──────────────────────────────────────────────────────────────────
+@st.cache_data(ttl=600)
+def fetch_seoul_weather():
+    url = (
+        "https://api.open-meteo.com/v1/forecast"
+        "?latitude=37.5665&longitude=126.9780"
+        "&current=temperature_2m,weathercode"
+        "&hourly=temperature_2m"
+        "&timezone=Asia%2FSeoul&forecast_days=1"
+    )
+    r = requests.get(url, timeout=5)
+    r.raise_for_status()
+    return r.json()
+
+def weathercode_to_label(code):
+    if code == 0:              return "맑음", "☀️"
+    if code in (1, 2, 3):     return "구름", "🌤️"
+    if code in range(51, 68): return "비", "🌧️"
+    if code in range(71, 78): return "눈", "❄️"
+    if code in range(80, 83): return "소나기", "🌦️"
+    if code in (95, 96, 99):  return "뇌우", "⛈️"
+    return "흐림", "🌥️"
+
+try:
+    weather_data = fetch_seoul_weather()
+    current_temp = weather_data["current"]["temperature_2m"]
+    weather_code = weather_data["current"]["weathercode"]
+    weather_label, weather_icon = weathercode_to_label(weather_code)
+
+    hourly_times = weather_data["hourly"]["time"]
+    hourly_temps = weather_data["hourly"]["temperature_2m"]
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    hourly_df = pd.DataFrame({
+        "시간": [t for t in hourly_times if t.startswith(today_str)],
+        "기온(°C)": [hourly_temps[i] for i, t in enumerate(hourly_times) if t.startswith(today_str)],
+    })
+    hourly_df["시간"] = pd.to_datetime(hourly_df["시간"]).dt.strftime("%H:%M")
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🌡️ 서울 현재 날씨</div>', unsafe_allow_html=True)
+    w_left, w_right = st.columns([1, 3])
+    with w_left:
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg,#4F63BD,#7B8FE0);
+            border-radius:14px; padding:1.4rem 1.6rem;
+            text-align:center; color:#fff;
+        ">
+            <div style="font-size:2.8rem;">{weather_icon}</div>
+            <div style="font-size:2.2rem; font-weight:900; margin:0.2rem 0;">{current_temp}°C</div>
+            <div style="font-size:0.9rem; opacity:0.85;">{weather_label} · 서울</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with w_right:
+        line = (
+            alt.Chart(hourly_df)
+            .mark_line(point=True, color="#4F63BD", strokeWidth=2.5)
+            .encode(
+                x=alt.X("시간:N", axis=alt.Axis(labelAngle=-45, labelFontSize=10,
+                                               labelColor="#6B7280", titleColor="#1C1C2E"),
+                        title="시간"),
+                y=alt.Y("기온(°C):Q",
+                        scale=alt.Scale(zero=False),
+                        axis=alt.Axis(labelFontSize=10, labelColor="#6B7280",
+                                      titleColor="#1C1C2E", title="기온 (°C)")),
+                tooltip=[alt.Tooltip("시간:N", title="시간"),
+                         alt.Tooltip("기온(°C):Q", title="기온", format=".1f")],
+            )
+            .properties(height=180, background="#FFFFFF")
+            .configure_view(stroke=None)
+            .configure_axis(grid=True, gridColor="#F0F0F0", domainColor="#E5E7EB")
+        )
+        st.altair_chart(line, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+except Exception:
+    st.warning("날씨 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")
 
 # ── 파일 업로드 ────────────────────────────────────────────────────────────────
 st.markdown('<div class="card">', unsafe_allow_html=True)
