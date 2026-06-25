@@ -10,7 +10,9 @@ st.set_page_config(page_title="에코마케팅 광고 대시보드", layout="wid
 # ── 스타일 ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ── 기본 배경 / 텍스트 ── */
+/* ════════════════════════════════════════════
+   기본 배경 / 텍스트  (범위를 좁혀서 툴팁 등 오버라이드 방지)
+   ════════════════════════════════════════════ */
 html, body,
 [data-testid="stAppViewContainer"],
 [data-testid="stMain"],
@@ -20,15 +22,78 @@ html, body,
     color: #1C1C2E !important;
 }
 [data-testid="stHeader"] { background: transparent !important; }
-p, span, div, li, label { color: #1C1C2E !important; }
-h1, h2, h3, h4 { color: #1C1C2E !important; font-weight: 700 !important; }
 .block-container { padding: 2rem 2.5rem 3rem !important; max-width: 1280px; }
 
-/* ── 사이드바 ── */
+/* 본문 영역 텍스트만 타게팅 (툴팁·드롭다운 제외) */
+.main p, .main li, .main h1, .main h2, .main h3, .main h4 {
+    color: #1C1C2E !important;
+}
+.main h1, .main h2, .main h3, .main h4 { font-weight: 700 !important; }
+
+/* ════════════════════════════════════════════
+   Vega-Lite / Altair 툴팁
+   ════════════════════════════════════════════ */
+.vg-tooltip {
+    background: #1C1C2E !important;
+    border: 1px solid #4F63BD !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 0.82rem !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+    color: #FFFFFF !important;
+}
+.vg-tooltip * { color: #FFFFFF !important; background: transparent !important; }
+.vg-tooltip td.key   { color: #A5B4FC !important; padding-right: 8px; }
+.vg-tooltip td.value { color: #FFFFFF !important; font-weight: 600; }
+.vg-tooltip table    { border-collapse: separate; border-spacing: 0 2px; }
+
+/* ════════════════════════════════════════════
+   Streamlit 자체 툴팁 (? 아이콘 호버)
+   ════════════════════════════════════════════ */
+[data-testid="stTooltipContent"],
+[data-testid="stTooltipContent"] div,
+[data-testid="stTooltipContent"] p,
+[data-testid="stTooltipContent"] span {
+    background: #1C1C2E !important;
+    color: #F9FAFB !important;
+}
+
+/* ════════════════════════════════════════════
+   파일 업로더
+   ════════════════════════════════════════════ */
+[data-testid="stFileUploader"] {
+    background: #FFFFFF !important;
+    border-radius: 12px !important;
+}
+[data-testid="stFileUploaderDropzone"] {
+    background: #F5F7FF !important;
+    border: 2px dashed #4F63BD !important;
+    border-radius: 12px !important;
+}
+[data-testid="stFileUploaderDropzoneInstructions"] small,
+[data-testid="stFileUploaderDropzoneInstructions"] span,
+[data-testid="stFileUploaderDropzoneInstructions"] p,
+[data-testid="stFileUploaderDropzoneInstructions"] div {
+    color: #4F63BD !important;
+    font-weight: 600 !important;
+}
+/* 업로드된 파일명 */
+[data-testid="stFileUploaderFile"] span,
+[data-testid="stFileUploaderFile"] p,
+[data-testid="stFileUploaderFile"] div { color: #1C1C2E !important; }
+[data-testid="stFileUploaderDeleteBtn"] svg { color: #EF4444 !important; }
+
+/* ════════════════════════════════════════════
+   사이드바
+   ════════════════════════════════════════════ */
 [data-testid="stSidebar"] {
     background: #FFFFFF !important;
     border-right: 1px solid #E5E7EB !important;
 }
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] div { color: #1C1C2E !important; }
 [data-testid="stSidebar"] h2 {
     color: #4F63BD !important;
     font-size: 1rem !important;
@@ -37,7 +102,46 @@ h1, h2, h3, h4 { color: #1C1C2E !important; font-weight: 700 !important; }
     margin-bottom: 1rem;
 }
 
-/* ── 카드 ── */
+/* ════════════════════════════════════════════
+   Multiselect / Select 드롭다운
+   ════════════════════════════════════════════ */
+/* 선택된 태그 */
+[data-baseweb="tag"] { background-color: #4F63BD !important; border-radius: 6px !important; }
+[data-baseweb="tag"] span { color: #FFFFFF !important; }
+[data-baseweb="tag"] svg  { color: #FFFFFF !important; fill: #FFFFFF !important; }
+
+/* 드롭다운 열렸을 때 목록 */
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+ul[data-baseweb="menu"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 20px rgba(79,99,189,0.15) !important;
+}
+[data-baseweb="option"] {
+    background: #FFFFFF !important;
+    color: #1C1C2E !important;
+}
+[data-baseweb="option"]:hover,
+[data-baseweb="option"][aria-selected="true"] {
+    background: #EEF1FB !important;
+    color: #4F63BD !important;
+}
+/* 입력 컨테이너 */
+[data-baseweb="select"] > div,
+[data-baseweb="input"] {
+    background: #FFFFFF !important;
+    border-color: #D1D5DB !important;
+    color: #1C1C2E !important;
+    border-radius: 8px !important;
+}
+[data-baseweb="select"] span,
+[data-baseweb="select"] div { color: #1C1C2E !important; }
+
+/* ════════════════════════════════════════════
+   카드
+   ════════════════════════════════════════════ */
 .card {
     background: #FFFFFF;
     border-radius: 16px;
@@ -46,8 +150,11 @@ h1, h2, h3, h4 { color: #1C1C2E !important; font-weight: 700 !important; }
     margin-bottom: 1.2rem;
     border: 1px solid #EAECF4;
 }
+.card p, .card span, .card div, .card label { color: #1C1C2E !important; }
 
-/* ── KPI 카드 ── */
+/* ════════════════════════════════════════════
+   KPI 카드
+   ════════════════════════════════════════════ */
 .kpi-card {
     background: #FFFFFF;
     border-radius: 16px;
@@ -59,33 +166,14 @@ h1, h2, h3, h4 { color: #1C1C2E !important; font-weight: 700 !important; }
     transition: box-shadow 0.2s;
 }
 .kpi-card:hover { box-shadow: 0 6px 20px rgba(79,99,189,0.13); }
-.kpi-icon {
-    font-size: 1.4rem;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-.kpi-label {
-    font-size: 0.72rem !important;
-    color: #6B7280 !important;
-    font-weight: 700 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 0.3rem;
-}
-.kpi-value {
-    font-size: 1.55rem !important;
-    font-weight: 800 !important;
-    color: #1C1C2E !important;
-    line-height: 1.2;
-    margin-bottom: 0.25rem;
-}
-.kpi-sub {
-    font-size: 0.73rem !important;
-    color: #9CA3AF !important;
-    font-weight: 500 !important;
-}
+.kpi-icon  { font-size: 1.4rem; margin-bottom: 0.5rem; display: block; }
+.kpi-label { font-size: 0.72rem !important; color: #6B7280 !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.3rem; }
+.kpi-value { font-size: 1.55rem !important; font-weight: 800 !important; color: #1C1C2E !important; line-height: 1.2; margin-bottom: 0.25rem; }
+.kpi-sub   { font-size: 0.73rem !important; color: #9CA3AF !important; font-weight: 500 !important; }
 
-/* ── 섹션 타이틀 ── */
+/* ════════════════════════════════════════════
+   섹션 타이틀
+   ════════════════════════════════════════════ */
 .section-title {
     font-size: 1rem !important;
     font-weight: 700 !important;
@@ -96,20 +184,14 @@ h1, h2, h3, h4 { color: #1C1C2E !important; font-weight: 700 !important; }
     gap: 0.4rem;
 }
 
-/* ── 업로드 박스 설명 텍스트 ── */
-[data-testid="stFileUploaderDropzoneInstructions"] span {
-    color: #4F63BD !important;
-    font-weight: 600 !important;
-}
-
-/* ── multiselect 태그 ── */
-[data-baseweb="tag"] { background-color: #4F63BD !important; }
-[data-baseweb="tag"] span { color: #FFFFFF !important; }
-
-/* ── 데이터프레임 ── */
+/* ════════════════════════════════════════════
+   데이터프레임
+   ════════════════════════════════════════════ */
 [data-testid="stDataFrame"] { border-radius: 10px; overflow: hidden; }
 
-/* ── 다운로드 버튼 ── */
+/* ════════════════════════════════════════════
+   다운로드 버튼
+   ════════════════════════════════════════════ */
 [data-testid="stDownloadButton"] > button {
     background: linear-gradient(135deg, #4F63BD 0%, #6C7FD8 100%) !important;
     color: #FFFFFF !important;
@@ -129,18 +211,26 @@ h1, h2, h3, h4 { color: #1C1C2E !important; font-weight: 700 !important; }
     transform: translateY(-1px) !important;
     color: #FFFFFF !important;
 }
-[data-testid="stDownloadButton"] > button p {
-    color: #FFFFFF !important;
-    font-weight: 700 !important;
-}
+[data-testid="stDownloadButton"] > button p,
+[data-testid="stDownloadButton"] > button span { color: #FFFFFF !important; font-weight: 700 !important; }
 
-/* ── info 박스 ── */
+/* ════════════════════════════════════════════
+   알림 / info 박스
+   ════════════════════════════════════════════ */
 [data-testid="stAlert"] {
     border-radius: 12px !important;
     border-left: 4px solid #4F63BD !important;
     background-color: #EEF1FB !important;
 }
-[data-testid="stAlert"] p { color: #374151 !important; }
+[data-testid="stAlert"] p,
+[data-testid="stAlert"] span,
+[data-testid="stAlert"] div { color: #374151 !important; }
+
+/* ════════════════════════════════════════════
+   warning / error 알림 텍스트
+   ════════════════════════════════════════════ */
+[data-testid="stNotification"] p,
+[data-testid="stNotification"] span { color: #1C1C2E !important; }
 </style>
 """, unsafe_allow_html=True)
 
